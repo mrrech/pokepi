@@ -21,14 +21,14 @@ ipython = "^7.20.0"
 [tool.pytest.ini_options]
 minversion = "6.0"
 junit_family = "legacy"
-addopts = "--verbosity=1 --cov=base --cov-report=term-missing --cov-report=xml --junit-xml=pytest-xunit.xml"
+addopts = "--verbosity=1 --cov=pokepi --cov-report=term-missing --cov-report=xml --junit-xml=pytest-xunit.xml"
 
 [tool.coverage.paths]
 source = ["src",]
 
 [tool.coverage.run]
 branch = true
-source = ["base"]
+source = ["pokepi"]
 
 [tool.coverage.report]
 ignore_errors = true

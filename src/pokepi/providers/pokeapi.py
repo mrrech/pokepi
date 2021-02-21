@@ -91,8 +91,8 @@ def sanitize(text):
     required, there are some natural-language processing libraries that can be
     used.
     """
-    spaces_normilized = " ".join(text.splitlines())
+    soft_hyphens_normalized = text.replace("\xad\n", "").replace("-\n", "-")
 
-    soft_hyphens_normalized = spaces_normilized.replace("\xad ", "")
+    spaces_normilized = " ".join(soft_hyphens_normalized.splitlines())
 
-    return soft_hyphens_normalized
+    return spaces_normilized
