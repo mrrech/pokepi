@@ -9,6 +9,43 @@ license = "MIT"
 python = "^3.8"
 
 [tool.poetry.dev-dependencies]
+black = "^20.8b1"
+pylint = "^2.6.2"
+isort = "^5.7.0"
+pytest-cov = {extras = ["toml"], version = "^2.11.1"}
+pytest-randomly = "^3.5.0"
+ipython = "^7.20.0"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+junit_family = "legacy"
+addopts = "--verbosity=1 --cov=base --cov-report=term-missing --cov-report=xml --junit-xml=pytest-xunit.xml"
+
+[tool.coverage.paths]
+source = ["src",]
+
+[tool.coverage.run]
+branch = true
+source = ["base"]
+
+[tool.coverage.report]
+ignore_errors = true
+fail_under = 90
+show_missing = true
+
+[tool.black]
+line-length = 88
+target-version = ["py37"]
+
+[tool.isort]
+line_length = 88
+atomic = true
+include_trailing_comma = true
+lines_after_imports = 2
+lines_between_types = 1
+multi_line_output = 3
+use_parentheses = true
+known_first_party = "pokepi"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
