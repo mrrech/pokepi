@@ -22,6 +22,10 @@ VALIDATION_SCHEMA = schema.Schema(
 )
 
 
+class ValidationError(Exception):
+    pass
+
+
 def get_pokemon_species(name):
     """
     Call the remote provider pokeapi.co and return the result.
@@ -49,8 +53,7 @@ def validate(payload):
     try:
         data = VALIDATION_SCHEMA.validate(payload)
     except schema.SchemaError as exc:
-        # TODO: log (with traceback) and raise
-        pass
+        raise ValidationError("Error validating the result") from exc
 
     return data
 

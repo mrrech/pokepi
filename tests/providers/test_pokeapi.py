@@ -1,6 +1,10 @@
 # pylint: disable=no-self-use,missing-docstring
 
-from pokepi.providers.pokeapi import sanitize
+import json
+
+import pytest
+
+from pokepi.providers.pokeapi import ValidationError, sanitize, validate
 
 
 class TestSanitize:
@@ -21,3 +25,17 @@ class TestSanitize:
         expected_text = ""
 
         assert sanitize(text) == expected_text
+
+
+class TestValidate:
+    def test_valid_data(self, datadir):
+        data = json.loads((datadir / "ditto.json").read_text())
+        expexted = json.loads((datadir / "validated_ditto.json").read_text())
+
+        assert validate(data) == expexted
+
+    def test_invalid_data(self):
+        invalid_data = {"invalid": 10}
+
+        with pytest.raises(ValidationError):
+            validate(invalid_data)
