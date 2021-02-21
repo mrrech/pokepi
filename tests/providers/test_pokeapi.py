@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from pokepi.providers.pokeapi import ValidationError, sanitize, validate
+from pokepi.providers.pokeapi import ValidationError, extract, sanitize, validate
 
 
 class TestSanitize:
@@ -39,3 +39,43 @@ class TestValidate:
 
         with pytest.raises(ValidationError):
             validate(invalid_data)
+
+
+class TestExtract:
+    def test_english(self):
+        data = {
+            "flavor_text_entries": [
+                {
+                    "flavor_text": "a_text_1",
+                    "language": {"name": "en", "url": "url_1"},
+                },
+                {
+                    "flavor_text": "a_text_2",
+                    "language": {"name": "en", "url": "url_2"},
+                },
+            ]
+        }
+
+        expected_data = ["a_text_1", "a_text_2"]
+
+        assert extract(data) == expected_data
+
+    def test_any_language(self):
+        data = {
+            "flavor_text_entries": [
+                {
+                    "flavor_text": "a_text_1",
+                    "language": {"name": "it", "url": "url_1"},
+                },
+                {
+                    "flavor_text": "a_text_2",
+                    "language": {"name": "de", "url": "url_2"},
+                },
+                {
+                    "flavor_text": "a_text_3",
+                    "language": {"name": "en", "url": "url_3"},
+                },
+            ]
+        }
+
+        assert extract(data) == ["a_text_3"]

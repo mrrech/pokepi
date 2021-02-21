@@ -23,6 +23,7 @@ VALIDATION_SCHEMA = schema.Schema(
 
 
 class ValidationError(Exception):
+    "Invalid data structure"
     pass
 
 
