@@ -2,9 +2,15 @@
 Retrieve Pokemon data from pokeapi.co
 """
 
+import logging
+
 import requests as rr
 import schema
 
+from pokepi.providers.common import RetryingSession
+
+
+log = logging.getLogger(__name__)
 
 URL = "https://pokeapi.co/api/v2/pokemon-species/{name}"
 LANGUAGE = "en"
@@ -24,7 +30,14 @@ VALIDATION_SCHEMA = schema.Schema(
 
 class ValidationError(Exception):
     "Invalid data structure"
-    pass
+
+
+class PokemonNotFound(Exception):
+    "Pokemon not found"
+
+
+class PokemonError(Exception):
+    "Generic PokeAPI errorr."
 
 
 def get_pokemon_species(name):
@@ -35,13 +48,29 @@ def get_pokemon_species(name):
     """
     url = URL.format(name=name)
 
-    resp = rr.get(url)
+    try:
+        with RetryingSession() as http:
+            resp = http.get(url)
 
-    if not resp.ok:
-        # TODO: deal with errors
-        pass
+        resp.raise_for_status()
+    except rr.HTTPError as exc:
 
-    return resp.json()
+        if exc.response.status_code == 404:
+            raise PokemonNotFound(f"Pokemon '{name}' not found.") from None
+
+        log.exception(
+            "PokeAPI failed with HTTPError: %s, %s",
+            exc.response.status_code,
+            exc.response.reason,
+        )
+        raise PokemonError() from None
+
+    except rr.RequestException as exc:
+        log.exception("PokeAPI failed with unexpected error: %s", exc)
+        raise PokemonError() from None
+
+    else:
+        return resp.json()
 
 
 def validate(payload):

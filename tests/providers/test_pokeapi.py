@@ -3,8 +3,19 @@
 import json
 
 import pytest
+import requests as rr
+import responses
 
-from pokepi.providers.pokeapi import ValidationError, extract, sanitize, validate
+from pokepi.providers.pokeapi import (
+    URL,
+    PokemonError,
+    PokemonNotFound,
+    ValidationError,
+    extract,
+    get_pokemon_species,
+    sanitize,
+    validate,
+)
 
 
 class TestSanitize:
@@ -79,3 +90,66 @@ class TestExtract:
         }
 
         assert extract(data) == ["a_text_3"]
+
+
+@pytest.fixture(name="retrying_response")
+def fixture_retrying_response():
+    with responses.RequestsMock(
+        target="pokepi.providers.common.HTTPAdapterWithDefaultTimeout.send"
+    ) as m_resp:
+        yield m_resp
+
+
+class TestGetPokemonSpecies:
+    def test_ok(self, retrying_response):
+        name = "ditto"
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body="{}",
+            content_type="application/json",
+            status=200,
+        )
+
+        assert get_pokemon_species(name) == {}
+
+    def test_not_found(self, retrying_response):
+        name = "not-found"
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body="Not Found",
+            content_type="text/plan",
+            status=404,
+        )
+
+        with pytest.raises(PokemonNotFound):
+            get_pokemon_species(name)
+
+    def test_http_error(self, retrying_response):
+        name = "ditto"
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body="Internal Server Error",
+            content_type="text/plan",
+            status=500,
+        )
+
+        with pytest.raises(PokemonError):
+            get_pokemon_species(name)
+
+    def test_unexpected_error(self, retrying_response):
+        name = "ditto"
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body=rr.ConnectionError("Connection error"),
+        )
+
+        with pytest.raises(PokemonError):
+            get_pokemon_species(name)
