@@ -6,15 +6,15 @@ import pytest
 import requests as rr
 import responses
 
+from pokepi.providers.common import ValidationError, validate
 from pokepi.providers.pokeapi import (
     URL,
+    VALIDATION_SCHEMA,
     PokemonError,
     PokemonNotFound,
-    ValidationError,
     extract,
     get_pokemon_species,
     sanitize,
-    validate,
 )
 
 
@@ -43,13 +43,13 @@ class TestValidate:
         data = json.loads((datadir / "ditto.json").read_text())
         expexted = json.loads((datadir / "validated_ditto.json").read_text())
 
-        assert validate(data) == expexted
+        assert validate(data, VALIDATION_SCHEMA) == expexted
 
     def test_invalid_data(self):
         invalid_data = {"invalid": 10}
 
         with pytest.raises(ValidationError):
-            validate(invalid_data)
+            validate(invalid_data, VALIDATION_SCHEMA)
 
 
 class TestExtract:

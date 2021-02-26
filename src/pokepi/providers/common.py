@@ -5,6 +5,7 @@ Wire utilities used by providers' implementations.
 import contextlib
 
 import requests as rr
+import schema
 import urllib3
 
 
@@ -66,3 +67,22 @@ def RetryingSession(  # pylint: disable=invalid-name
         yield session
     finally:
         session.close()
+
+
+class ValidationError(Exception):
+    "Invalid data structure"
+
+
+def validate(payload, validation_schema):
+    """
+    Validate the PokeAPI result against the expected response schema.
+
+    Since just few fields are actually required we make sure that just those
+    fields are there and ignore the rest.
+    """
+    try:
+        data = validation_schema.validate(payload)
+    except schema.SchemaError as exc:
+        raise ValidationError("Error validating the result") from exc
+
+    return data

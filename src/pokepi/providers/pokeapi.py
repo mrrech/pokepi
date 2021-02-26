@@ -28,10 +28,6 @@ VALIDATION_SCHEMA = schema.Schema(
 )
 
 
-class ValidationError(Exception):
-    "Invalid data structure"
-
-
 class PokemonNotFound(Exception):
     "Pokemon not found"
 
@@ -71,21 +67,6 @@ def get_pokemon_species(name):
 
     else:
         return resp.json()
-
-
-def validate(payload):
-    """
-    Validate the PokeAPI result against the expected response schema.
-
-    Since just few fields are actually required we make sure that just those
-    fields are there and ignore the rest.
-    """
-    try:
-        data = VALIDATION_SCHEMA.validate(payload)
-    except schema.SchemaError as exc:
-        raise ValidationError("Error validating the result") from exc
-
-    return data
 
 
 def extract(payload):
