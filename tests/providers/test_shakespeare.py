@@ -11,6 +11,7 @@ from pokepi.providers.shakespeare import (
     URL,
     VALIDATION_SCHEMA,
     TranslationError,
+    extract,
     get_translation,
 )
 
@@ -97,3 +98,17 @@ class TestValidate:
 
         with pytest.raises(ValidationError):
             validate(invalid_data, VALIDATION_SCHEMA)
+
+
+class TestExtract:
+    def test_text(self):
+        payload = {
+            "success": {"total": 1},
+            "contents": {
+                "translated": "translated_text",
+                "text": "original_text",
+                "translation": "shakespeare",
+            },
+        }
+
+        assert extract(payload) == "translated_text"

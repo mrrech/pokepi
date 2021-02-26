@@ -42,3 +42,10 @@ def get_translation(text):
 
     else:
         return resp.json()
+
+
+def extract(payload):
+    """
+    Extract the Shakespearean translation of the text.
+    """
+    return payload["contents"]["translated"]
