@@ -17,9 +17,9 @@ URL = "https://api.funtranslations.com/translate/shakespeare.json"
 
 VALIDATION_SCHEMA = schema.Schema(
     {
-        "success": {"total": int},
         "contents": {"translated": str, "text": str, "translation": str},
-    }
+    },
+    ignore_extra_keys=True,
 )
 
 

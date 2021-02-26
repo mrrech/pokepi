@@ -6,7 +6,13 @@ import pytest
 import requests as rr
 import responses
 
-from pokepi.providers.shakespeare import URL, TranslationError, get_translation
+from pokepi.providers.common import ValidationError, validate
+from pokepi.providers.shakespeare import (
+    URL,
+    VALIDATION_SCHEMA,
+    TranslationError,
+    get_translation,
+)
 
 
 @pytest.fixture(name="retrying_response")
@@ -64,3 +70,30 @@ class TestGetTranslation:
 
         with pytest.raises(TranslationError):
             get_translation(text)
+
+
+class TestValidate:
+    def test_valid_data(self):
+        data = {
+            "success": {"total": 1},
+            "contents": {
+                "translated": "translated text",
+                "text": "original text",
+                "translation": "shakespeare",
+            },
+        }
+        expexted = {
+            "contents": {
+                "translated": "translated text",
+                "text": "original text",
+                "translation": "shakespeare",
+            },
+        }
+
+        assert validate(data, VALIDATION_SCHEMA) == expexted
+
+    def test_invalid_data(self):
+        invalid_data = {"invalid": 10}
+
+        with pytest.raises(ValidationError):
+            validate(invalid_data, VALIDATION_SCHEMA)
