@@ -2,12 +2,21 @@
 Pokepi app.
 """
 from flask import Flask, abort, json, jsonify
+from flask.logging import default_handler
+from pythonjsonlogger import jsonlogger
 from werkzeug.exceptions import HTTPException
 
 from pokepi.providers import ResourceNotFound, pokeapi_processor, shakespeare_processor
 
 
 app = Flask(__name__)
+default_handler.setFormatter(
+    jsonlogger.JsonFormatter(
+        "%(levelname)s %(message)s %(module)s %(levelname)s %(lineno)s",
+        timestamp=True,
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
+    )
+)
 
 
 @app.errorhandler(HTTPException)
@@ -48,5 +57,6 @@ def pokemon(name):
 @app.route("/health")
 def health():
     "Application's health-check endpoint."
+    app.logger.warning("This is a log message")
 
     return jsonify({"health": "ok"})
