@@ -1,4 +1,4 @@
-# pylint: disable=no-self-use,missing-docstring
+# pylint: disable=no-self-use,missing-docstring, too-few-public-methods
 
 import json
 
@@ -13,14 +13,6 @@ from pokepi.providers.shakespeare import (
     extract,
     get_translation,
 )
-
-
-@pytest.fixture(name="retrying_response")
-def fixture_retrying_response():
-    with responses.RequestsMock(
-        target="pokepi.providers.common.HTTPAdapterWithDefaultTimeout.send"
-    ) as m_resp:
-        yield m_resp
 
 
 class TestGetTranslation:

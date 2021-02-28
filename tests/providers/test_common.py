@@ -2,7 +2,6 @@
 
 import pytest
 import requests as rr
-import responses
 
 from pokepi.providers.common import RetryingSession
 

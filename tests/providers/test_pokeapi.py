@@ -95,14 +95,6 @@ class TestExtract:
         assert extract(data) == ["a_text_3"]
 
 
-@pytest.fixture(name="retrying_response")
-def fixture_retrying_response():
-    with responses.RequestsMock(
-        target="pokepi.providers.common.HTTPAdapterWithDefaultTimeout.send"
-    ) as m_resp:
-        yield m_resp
-
-
 class TestGetPokemonSpecies:
     def test_ok(self, retrying_response):
         name = "ditto"
