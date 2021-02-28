@@ -43,3 +43,10 @@ def pokemon(name):
         abort(500)
 
     return jsonify({"name": name, "description": translated_description})
+
+
+@app.route("/health")
+def health():
+    "Application's health-check endpoint."
+
+    return jsonify({"health": "ok"})

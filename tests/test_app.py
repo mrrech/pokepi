@@ -69,3 +69,12 @@ class TestPokemonEndpoint:
 
             m_pokeapi_processor.assert_called_once_with("unexpected_error")
             m_shakespeare_processor.assert_not_called()
+
+
+class TestHealthCheck:
+    def test_ok(self, test_app):
+        with test_app.test_client() as client:
+            resp = client.get("/health")
+
+            assert resp.status_code == 200
+            assert resp.json == dict(health="ok")
