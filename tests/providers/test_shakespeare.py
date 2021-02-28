@@ -12,6 +12,7 @@ from pokepi.providers.shakespeare import (
     VALIDATION_SCHEMA,
     extract,
     get_translation,
+    shakespeare_processor,
 )
 
 
@@ -107,3 +108,58 @@ class TestExtract:
         }
 
         assert extract(payload) == "translated_text"
+
+
+class TestShakespeareProcessor:
+    def test_ok(self, retrying_response):
+        text = "This is a test text."
+        response_data = {
+            "success": {"total": 1},
+            "contents": {
+                "translated": "translated_text",
+                "text": text,
+                "translation": "shakespeare",
+            },
+        }
+
+        retrying_response.add(
+            responses.POST,
+            URL,
+            body=json.dumps(response_data),
+            content_type="application/json",
+            status=200,
+        )
+
+        assert shakespeare_processor(text) == "translated_text"
+
+    def test_io_error(self, retrying_response):
+        text = "This is a test text."
+
+        retrying_response.add(
+            responses.POST,
+            URL,
+            body=rr.ConnectionError("Connection error"),
+        )
+
+        with pytest.raises(
+            ProviderError, match="Unexpected error from Shakespeare API"
+        ):
+            shakespeare_processor(text)
+
+    def test_validation_error(self, retrying_response):
+        text = "This is a test text."
+        response_data = {
+            "success": {"total": 1},
+            "contents": {},
+        }
+
+        retrying_response.add(
+            responses.POST,
+            URL,
+            body=json.dumps(response_data),
+            content_type="application/json",
+            status=200,
+        )
+
+        with pytest.raises(ValidationError):
+            shakespeare_processor(text)

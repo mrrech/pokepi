@@ -7,7 +7,7 @@ import logging
 import requests as rr
 import schema
 
-from pokepi.providers.common import ProviderError, RetryingSession
+from pokepi.providers.common import ProviderError, RetryingSession, validate
 
 
 log = logging.getLogger(__name__)
@@ -45,3 +45,20 @@ def extract(payload):
     Extract the Shakespearean translation of the text.
     """
     return payload["contents"]["translated"]
+
+
+def shakespeare_processor(text):
+    """
+    Return Shakespeare API translation of the given `text`.
+
+    If the Shakespeare API fails a `ProviderError` is raised. If the response
+    does not conform to the expected JSON schema a `ValidationError` is raised.
+    Unexpected error conditions can raise any child of `Exception`.
+    """
+    payload = get_translation(text)
+
+    validated = validate(payload, VALIDATION_SCHEMA)
+
+    translation = extract(validated)
+
+    return translation
