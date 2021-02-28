@@ -6,11 +6,10 @@ import pytest
 import requests as rr
 import responses
 
-from pokepi.providers.common import ValidationError, validate
+from pokepi.providers.common import ProviderError, ValidationError, validate
 from pokepi.providers.shakespeare import (
     URL,
     VALIDATION_SCHEMA,
-    TranslationError,
     extract,
     get_translation,
 )
@@ -57,7 +56,9 @@ class TestGetTranslation:
             status=500,
         )
 
-        with pytest.raises(TranslationError):
+        with pytest.raises(
+            ProviderError, match="Unexpected error from Shakespeare API"
+        ):
             get_translation(text)
 
     def test_unexpected_error(self, retrying_response):
@@ -69,7 +70,9 @@ class TestGetTranslation:
             body=rr.ConnectionError("Connection error"),
         )
 
-        with pytest.raises(TranslationError):
+        with pytest.raises(
+            ProviderError, match="Unexpected error from Shakespeare API"
+        ):
             get_translation(text)
 
 

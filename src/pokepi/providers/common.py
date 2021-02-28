@@ -69,6 +69,19 @@ def RetryingSession(  # pylint: disable=invalid-name
         session.close()
 
 
+class ResourceNotFound(Exception):
+    """
+    Resource not found.
+
+    This exception is usually raised when a provider reply with a 404 status
+    code, meaning the requested resource was not found.
+    """
+
+
+class ProviderError(Exception):
+    "Generic provider error."
+
+
 class ValidationError(Exception):
     "Invalid data structure"
 

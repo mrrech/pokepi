@@ -6,12 +6,15 @@ import pytest
 import requests as rr
 import responses
 
-from pokepi.providers.common import ValidationError, validate
+from pokepi.providers.common import (
+    ProviderError,
+    ResourceNotFound,
+    ValidationError,
+    validate,
+)
 from pokepi.providers.pokeapi import (
     URL,
     VALIDATION_SCHEMA,
-    PokemonError,
-    PokemonNotFound,
     extract,
     get_pokemon_species,
     sanitize,
@@ -125,7 +128,7 @@ class TestGetPokemonSpecies:
             status=404,
         )
 
-        with pytest.raises(PokemonNotFound):
+        with pytest.raises(ResourceNotFound, match="Pokemon 'not-found' not found"):
             get_pokemon_species(name)
 
     def test_http_error(self, retrying_response):
@@ -139,7 +142,9 @@ class TestGetPokemonSpecies:
             status=500,
         )
 
-        with pytest.raises(PokemonError):
+        with pytest.raises(
+            ProviderError, match="HTTP error from PokeAPI: 500, Internal Server Error"
+        ):
             get_pokemon_species(name)
 
     def test_unexpected_error(self, retrying_response):
@@ -151,5 +156,5 @@ class TestGetPokemonSpecies:
             body=rr.ConnectionError("Connection error"),
         )
 
-        with pytest.raises(PokemonError):
+        with pytest.raises(ProviderError, match="Unexpected error from PokeAPI"):
             get_pokemon_species(name)

@@ -7,7 +7,7 @@ import logging
 import requests as rr
 import schema
 
-from pokepi.providers.common import RetryingSession
+from pokepi.providers.common import ProviderError, ResourceNotFound, RetryingSession
 
 
 log = logging.getLogger(__name__)
@@ -28,14 +28,6 @@ VALIDATION_SCHEMA = schema.Schema(
 )
 
 
-class PokemonNotFound(Exception):
-    "Pokemon not found"
-
-
-class PokemonError(Exception):
-    "Generic PokeAPI errorr."
-
-
 def get_pokemon_species(name):
     """
     Call the remote provider pokeapi.co and return the result.
@@ -52,18 +44,21 @@ def get_pokemon_species(name):
     except rr.HTTPError as exc:
 
         if exc.response.status_code == 404:
-            raise PokemonNotFound(f"Pokemon '{name}' not found.") from None
+            raise ResourceNotFound(f"Pokemon '{name}' not found.") from None
 
         log.exception(
             "PokeAPI failed with HTTPError: %s, %s",
             exc.response.status_code,
             exc.response.reason,
         )
-        raise PokemonError() from None
+        raise ProviderError(
+            "HTTP error from PokeAPI: %s, %s"
+            % (exc.response.status_code, exc.response.reason)
+        ) from None
 
     except rr.RequestException as exc:
         log.exception("PokeAPI failed with unexpected error: %s", exc)
-        raise PokemonError() from None
+        raise ProviderError("Unexpected error from PokeAPI") from None
 
     else:
         return resp.json()
