@@ -17,6 +17,7 @@ from pokepi.providers.pokeapi import (
     VALIDATION_SCHEMA,
     extract,
     get_pokemon_species,
+    pokeapi_processor,
     sanitize,
 )
 
@@ -150,3 +151,63 @@ class TestGetPokemonSpecies:
 
         with pytest.raises(ProviderError, match="Unexpected error from PokeAPI"):
             get_pokemon_species(name)
+
+
+class TestPokeapiProcessor:
+    def test_ok(self, retrying_response, datadir):
+        name = "ditto"
+        data = (datadir / "ditto.json").read_text()
+        expected_description = """\
+DITTO rearranges its cell structure to transform itself into other shapes. However, if it tries to transform itself into something by relying on its memory, this POKéMON manages to get details wrong.\
+"""
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body=data,
+            content_type="application/json",
+            status=200,
+        )
+
+        assert pokeapi_processor(name) == expected_description
+
+    def test_io_error(self, retrying_response):
+        name = "ditto"
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body=rr.ConnectionError("Connection error"),
+        )
+
+        with pytest.raises(ProviderError, match="Unexpected error from PokeAPI"):
+            pokeapi_processor(name)
+
+    def test_validation_error(self, retrying_response):
+        name = "ditto"
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body="{}",
+            content_type="application/json",
+            status=200,
+        )
+
+        with pytest.raises(ValidationError):
+            pokeapi_processor(name)
+
+    def test_unexpected_error(self, retrying_response, datadir):
+        name = "ditto"
+        data = (datadir / "ditto-empty-descriptions.json").read_text()
+
+        retrying_response.add(
+            responses.GET,
+            URL.format(name=name),
+            body=data,
+            content_type="application/json",
+            status=200,
+        )
+
+        with pytest.raises(IndexError, match="list index out of range"):
+            pokeapi_processor(name)

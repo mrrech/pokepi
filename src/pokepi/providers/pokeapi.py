@@ -7,7 +7,12 @@ import logging
 import requests as rr
 import schema
 
-from pokepi.providers.common import ProviderError, ResourceNotFound, RetryingSession
+from pokepi.providers.common import (
+    ProviderError,
+    ResourceNotFound,
+    RetryingSession,
+    validate,
+)
 
 
 log = logging.getLogger(__name__)
@@ -105,3 +110,32 @@ def sanitize(text):
     spaces_normilized = " ".join(soft_hyphens_normalized.splitlines())
 
     return spaces_normilized
+
+
+def pokeapi_processor(name):
+    """
+    Return Pokemon's description when given a `name`.
+
+    PokeAPI returns many descriptions for a given `name`, to make our API
+    service really RESTful the result of this processor must be stable. One way
+    to get it stable would have been to concatenate all the descriptions, but
+    I'm not sure about any text length limit in the following translation step.
+    So I decided to pick the longest description which should be fine.
+
+    If the Pokemon does not exist a `ResourceNotFound` exception is raised. If
+    the response does not conform to the expected JSON schema a
+    `ValidationError` is raised. In case of any I/O error a generic
+    `ProviderError` is raised. Unexcepted error conditions can raise any child
+    of `Exception`.
+    """
+    payload = get_pokemon_species(name)
+
+    validated = validate(payload, VALIDATION_SCHEMA)
+
+    descriptions = extract(validated)
+
+    sanitized = [sanitize(description) for description in descriptions]
+
+    longest_description = sorted(sanitized, key=len, reverse=True)[0]
+
+    return longest_description
