@@ -1,6 +1,7 @@
 # Manually added
 
 pytest-xunit.xml
+build-docs
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/vim,emacs,visualstudiocode,linux,macos,windows,tags,python,virtualenv
