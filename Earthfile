@@ -217,9 +217,6 @@ toolchain-python-docker:
 
     RUN pip --no-cache-dir install --no-deps $TMP_WHEELS/* && rm -fr $TMP_WHEELS
 
-    # Copy the online documentation
-    COPY +toolchain-python-documentation/_docs $VENV_DIR/lib/python3.8/site-packages/pokepi/docs
-
     RUN groupadd --system $SERVICE_NAME && useradd --create-home --system --gid $SERVICE_NAME $SERVICE_NAME
     USER $SERVICE_NAME
 
@@ -229,11 +226,25 @@ toolchain-python-docker:
 
     SAVE IMAGE --push $SERVICE_DOMAIN/$SERVICE_NAME:$TAG
 
+toolchain-python-docker-documentation:
+    FROM nginx:stable-alpine
+
+    ARG SERVICE_DOMAIN
+    ARG SERVICE_NAME
+    ARG TAG
+
+    # Copy the online documentation
+    COPY +toolchain-python-documentation/_docs/* /usr/share/nginx/html
+
+    EXPOSE 80
+    SAVE IMAGE --push $SERVICE_DOMAIN/${SERVICE_NAME}/docs:$TAG
+
 toolchain-python-build:
     BUILD +toolchain-python-lint
     BUILD +toolchain-python-test
     BUILD +toolchain-python-documentation
     BUILD +toolchain-python-docker
+    BUILD +toolchain-python-docker-documentation
 
 shell:
     ARG PROJECT=python
