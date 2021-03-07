@@ -1,17 +1,29 @@
 # pylint: disable=no-self-use,missing-docstring
 
+import tempfile
+
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from pokepi.app import app
+from pokepi.app import pokepi_application_factory
 from pokepi.providers import ProviderError, ResourceNotFound
 
 
 @pytest.fixture(name="test_app")
 def app_fixture():
-    app.testing = True
-    return app
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with open(Path(temp_dir) / "index.html", "w") as fd:
+            fd.write("docs!")
+
+        app = pokepi_application_factory(
+            "test_pokepi", static_url_path="", docs_dir=temp_dir
+        )
+
+        app.testing = True
+
+        yield app
 
 
 class TestPokemonEndpoint:
@@ -78,3 +90,12 @@ class TestHealthCheck:
 
             assert resp.status_code == 200
             assert resp.json == dict(health="ok")
+
+
+class TestDocumentation:
+    def test_ok(self, test_app):
+        with test_app.test_client() as client:
+            resp = client.get("/docs")
+
+            assert resp.status_code == 200
+            assert resp.data == b"docs!"
