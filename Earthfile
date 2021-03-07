@@ -251,7 +251,7 @@ shell:
     BUILD +toolchain-$PROJECT-shell
 
 build-pokepi:
-    ARG SERVICE_DOMAIN=ariciputi
+    ARG SERVICE_DOMAIN=mrrech
     ARG SERVICE_NAME=pokepi
     ARG TAG
     BUILD --build-arg SERVICE_NAME=$SERVICE_NAME \
